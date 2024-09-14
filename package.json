@@ -1,0 +1,16 @@
+{
+  "name": "server",
+  "type": "module",
+  "scripts": {
+    "dev": "bun run --hot src/index.ts"
+  },
+  "dependencies": {
+    "hono": "^4.5.0",
+    "mongoose": "^8.5.1"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^2.23.0",
+    "@types/bun": "latest",
+    "eslint": "^9.7.0"
+  }
+}
