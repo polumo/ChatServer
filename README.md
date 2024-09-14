@@ -1,4 +1,4 @@
-本项目为vue-chat的后端项目，使用Bun+Hono编写
+本项目为EasyChat的后端项目，使用Bun+Hono编写
 
 下载依赖:
 ```sh
