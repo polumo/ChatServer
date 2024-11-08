@@ -1,45 +1,42 @@
 import type { Context } from 'hono'
 import { User } from '@/models/User.ts'
-import { createErrorResponse, createResponse } from '@/utils/createResponse.ts'
 import generateToken from '@/utils/generateToken.ts'
 
-const loginUser = async ({ req, status, json }: Context) => {
+const loginUser = async ({ req, get }: Context) => {
+  const successResponse = get('successResponse')
+  const errorResponse = get('errorResponse')
   try {
     const { email, password } = await req.json()
 
-    if (!email || !password) {
-      status(401)
-      return json(createResponse({ code: 401, message: '邮箱或密码错误' }))
-    }
-
-    const user = await User.findOneAndUpdate({ email }, { lastLoginAt: new Date(), status: 1 })
+    const user = await User.findOneAndUpdate({ email }, { lastLoginAt: new Date(), status: 'active' })
     if (!user) {
-      status(404)
-      return json(createResponse({ code: 404, message: '邮箱不存在' }))
+      return errorResponse({ message: '邮箱不存在', code: 404 })
     }
 
-    if (!user.verifyPassword(password)) {
-      status(401)
-      return json(createResponse({ code: 401, message: '密码错误' }))
+    if (!password) {
+      return errorResponse({ message: '邮箱或密码错误', code: 401 })
+    }
+
+    if (!(await user.verifyPassword(password))) {
+      return errorResponse({ message: '密码错误', code: 401 })
     }
 
     const token = await generateToken(user._id.toString())
-    status(200)
-    return json(createResponse({ code: 200, data: token, message: '登录成功' }))
+    return successResponse({ data: token, message: '登录成功', code: 200 })
   } catch {
-    status(500)
-    return json(createErrorResponse())
+    return errorResponse()
   }
 }
 
-const registerUser = async ({ req, status, json }: Context) => {
+const registerUser = async ({ req, get }: Context) => {
+  const successResponse = get('successResponse')
+  const errorResponse = get('errorResponse')
   try {
     const { email, nickname, password } = await req.json()
 
     const exists = await User.findOne({ email })
     if (exists) {
-      status(409)
-      return json(createResponse({ code: 409, message: '该邮箱已被注册' }))
+      return errorResponse({ code: 409, message: '该邮箱已被注册' })
     }
 
     const newUser = await User.create({
@@ -49,21 +46,20 @@ const registerUser = async ({ req, status, json }: Context) => {
       lastLoginAt: new Date(),
     })
     const token = await generateToken(newUser._id.toString())
-    status(201)
-    return json(createResponse({ code: 201, data: token, message: '注册成功，正在登录...' }))
+    return successResponse({ code: 201, data: token, message: '注册成功' })
   } catch {
-    status(500)
-    return json(createErrorResponse())
+    return errorResponse()
   }
 }
 
-const getUsers = async ({ status, json }: Context) => {
+const getUsers = async ({ get }: Context) => {
+  const successResponse = get('successResponse')
+  const errorResponse = get('errorResponse')
   try {
     const users = await User.find()
-    return json(createResponse({ code: 200, data: users }))
+    return successResponse({ code: 200, data: users })
   } catch {
-    status(500)
-    return json(createErrorResponse())
+    return errorResponse()
   }
 }
 

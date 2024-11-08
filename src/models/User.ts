@@ -1,17 +1,25 @@
 import { Schema, model } from 'mongoose'
 
 const userSchema = new Schema({
-  nickname: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
+  nickname: { type: String, required: true, index: true },
+  email: { type: String, required: true, unique: true, index: true },
   password: { type: String, required: true },
   avatarUrl: { type: String },
-  status: { type: Number, default: 0 },
-  createAt: { type: Date, default: Date.now },
+  status: {
+    type: String,
+    default: 'inactive',
+    enum: ['inactive', 'active'],
+  },
   lastLoginAt: { type: Date },
 }, {
+  timestamps: true,
   methods: {
-    verifyPassword(pwd: string) {
-      return Bun.password.verifySync(pwd, this.password)
+    async verifyPassword(pwd: string) {
+      try {
+        return Bun.password.verify(pwd, this.password)
+      } catch {
+        throw new Error('密码验证失败')
+      }
     },
   },
 })
@@ -19,13 +27,18 @@ const userSchema = new Schema({
 // Hash password with Bun
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) {
-    next()
+    return next()
   }
 
-  this.password = await Bun.password.hash(this.password, {
-    algorithm: 'bcrypt',
-    cost: 4,
-  })
+  try {
+    this.password = await Bun.password.hash(this.password, {
+      algorithm: 'bcrypt',
+      cost: 4,
+    })
+    next()
+  } catch (error: any) {
+    next(error)
+  }
 })
 
 export const User = model('User', userSchema)

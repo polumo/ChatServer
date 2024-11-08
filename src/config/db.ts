@@ -4,6 +4,7 @@ const connectDB = async () => {
   try {
     if (Bun.env.MONGODB_URI !== undefined) {
       const conn = await connect(Bun.env.MONGODB_URI)
+      // eslint-disable-next-line no-console
       console.log(`MongoDB Connected: ${conn.connection.host}`)
     }
   } catch (err: any) {
