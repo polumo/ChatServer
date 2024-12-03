@@ -8,7 +8,10 @@ const loginUser = async ({ req, get }: Context) => {
   try {
     const { email, password } = await req.json()
 
-    const user = await User.findOneAndUpdate({ email }, { lastLoginAt: new Date(), status: 'active' })
+    const user = await User.findOneAndUpdate({ email }, {
+      lastLoginAt: new Date(),
+      status: 'active',
+    })
     if (!user) {
       return errorResponse({ message: '邮箱不存在', code: 404 })
     }
@@ -63,4 +66,21 @@ const getUsers = async ({ get }: Context) => {
   }
 }
 
-export { loginUser, registerUser, getUsers }
+const searchUser = async ({ req, get }: Context) => {
+  const successResponse = get('successResponse')
+  const errorResponse = get('errorResponse')
+  try {
+    const { searchValue } = await req.json()
+    const users = await User.find({
+      $or: [
+        { nickname: { $regex: searchValue, $options: 'i' } },
+        { email: { $regex: searchValue, $options: 'i' } },
+      ],
+    }, 'nickname email') // 只返回 nickname email 字段
+    return successResponse({ code: 200, data: users })
+  } catch {
+    return errorResponse()
+  }
+}
+
+export { getUsers, loginUser, registerUser, searchUser }

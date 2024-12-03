@@ -2,17 +2,10 @@
 import type { Context } from 'hono'
 import type { StatusCode } from 'hono/utils/http-status'
 
-interface ApiResponse<T = null> {
-  code: StatusCode
+export interface ApiResponse<T = null> {
+  code?: StatusCode
   data?: T
   message?: string
-}
-
-declare module 'hono' {
-  interface ContextVariableMap {
-    successResponse: <T>(arg: ApiResponse<T>) => any
-    errorResponse: (arg?: ApiResponse) => any
-  }
 }
 
 export const responseMiddleware = (ctx: Context, next: () => Promise<void>) => {
