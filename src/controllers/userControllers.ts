@@ -1,6 +1,7 @@
 import type { Context } from 'hono'
 import { User } from '@/models/User.ts'
 import generateToken from '@/utils/generateToken.ts'
+import { FriendShip } from '@/models/FriendShip.ts'
 
 const loginUser = async ({ req, get }: Context) => {
   const successResponse = get('successResponse')
@@ -83,4 +84,18 @@ const searchUser = async ({ req, get }: Context) => {
   }
 }
 
-export { getUsers, loginUser, registerUser, searchUser }
+const getFriends = async ({ get }: Context) => {
+  const sucRes = get('successResponse')
+  const errRes = get('errorResponse')
+  const userId = get('userId')
+
+  try {
+    const friends = await FriendShip.find({ userId, status: 'friend' })
+
+    return sucRes({ data: friends })
+  } catch {
+    return errRes()
+  }
+}
+
+export { getUsers, loginUser, registerUser, searchUser, getFriends }

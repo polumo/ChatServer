@@ -1,9 +1,11 @@
 import { Hono } from 'hono'
-import { sendFriendRequest } from '@/controllers/friendShipController.ts'
+import { agreeFriendRequest, getFriendRequest, sendFriendRequest } from '@/controllers/friendShipController.ts'
 import verifyToken from '@/middleware/verifyToken.ts'
 
 const friendShipRoutes = new Hono()
 
-friendShipRoutes.post('/sendFriendRequest', verifyToken, sendFriendRequest)
+friendShipRoutes.post('/send', verifyToken, sendFriendRequest)
+friendShipRoutes.post('/agree', agreeFriendRequest)
+friendShipRoutes.get('/friendRequest', verifyToken, getFriendRequest)
 
 export default friendShipRoutes

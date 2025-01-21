@@ -32,4 +32,68 @@ const sendFriendRequest = async ({ req, get }: Context) => {
   }
 }
 
-export { sendFriendRequest }
+const getFriendRequest = async ({ get }: Context) => {
+  const sucRes = get('successResponse')
+  const errRes = get('errorResponse')
+  const userId = get('userId')
+
+  try {
+    const requestList = await FriendShip.find({ userId, status: 'requested' })
+
+    return sucRes({ data: requestList })
+  } catch {
+    return errRes()
+  }
+}
+
+const agreeFriendRequest = async ({ get, req }: Context) => {
+  const sucRes = get('successResponse')
+  const errRes = get('errorResponse')
+
+  try {
+    const { friendRequestId } = await req.json()
+
+    if (!friendRequestId) {
+      return errRes({ code: 400, message: 'Bad Request' })
+    }
+
+    const friendRequest = await FriendShip.findOneAndUpdate({ _id: friendRequestId }, { status: 'friend' })
+
+    if (!friendRequest) {
+      return errRes({ message: '未查询到该请求' })
+    }
+
+    return sucRes({ message: '添加成功' })
+  } catch {
+    return errRes()
+  }
+}
+
+const rejectFriendRequest = async ({ get, req }: Context) => {
+  const sucRes = get('successResponse')
+  const errRes = get('errorResponse')
+
+  try {
+    const { friendRequestId } = await req.json()
+
+    if (!friendRequestId) {
+      return errRes({ code: 400, message: 'Bad Request' })
+    }
+
+    const friendRequest = await FriendShip.findByIdAndDelete(friendRequestId)
+
+    if (!friendRequest) {
+      return errRes({ message: '未查询到该请求' })
+    }
+
+    if (friendRequest.status !== 'requested') {
+      return errRes({ message: '该请求非请求中' })
+    }
+
+    return sucRes({ message: '拒绝成功' })
+  } catch {
+    return errRes()
+  }
+}
+
+export { sendFriendRequest, getFriendRequest, rejectFriendRequest, agreeFriendRequest }
